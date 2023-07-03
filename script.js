@@ -30,8 +30,13 @@ const questions = [
   },
 ];
 
+// Retrieve progress from session storage if available
+const savedProgress = sessionStorage.getItem("progress");
+let userAnswers = savedProgress ? JSON.parse(savedProgress) : Array(questions.length).fill(null);
+
 // Display the quiz questions and choices
 function renderQuestions() {
+  const questionsElement = document.getElementById("questions");
   for (let i = 0; i < questions.length; i++) {
     const question = questions[i];
     const questionElement = document.createElement("div");
@@ -46,6 +51,10 @@ function renderQuestions() {
       if (userAnswers[i] === choice) {
         choiceElement.setAttribute("checked", true);
       }
+      choiceElement.addEventListener("change", () => {
+        userAnswers[i] = choice;
+        sessionStorage.setItem("progress", JSON.stringify(userAnswers));
+      });
       const choiceText = document.createTextNode(choice);
       questionElement.appendChild(choiceElement);
       questionElement.appendChild(choiceText);
@@ -53,4 +62,29 @@ function renderQuestions() {
     questionsElement.appendChild(questionElement);
   }
 }
+
+// Handle quiz submission
+function submitQuiz() {
+  const score = calculateScore();
+  localStorage.setItem("score", score);
+  const scoreElement = document.getElementById("score");
+  scoreElement.textContent = `Your score is ${score} out of ${questions.length}.`;
+}
+
+// Calculate the score
+function calculateScore() {
+  let score = 0;
+  for (let i = 0; i < questions.length; i++) {
+    if (userAnswers[i] === questions[i].answer) {
+      score++;
+    }
+  }
+  return score;
+}
+
+// Initialize the quiz
 renderQuestions();
+
+// Add event listener to submit button
+const submitButton = document.getElementById("submit");
+submitButton.addEventListener("click", submitQuiz);
